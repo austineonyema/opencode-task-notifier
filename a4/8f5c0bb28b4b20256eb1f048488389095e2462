@@ -1,0 +1,23 @@
+.gitignore
+  s_c78e91e1dce8bd::t_10a886e6992a5e 1-25
+LICENSE
+  s_c78e91e1dce8bd::t_473bcf5cdf9a15 1-21
+README.md
+  s_c78e91e1dce8bd::t_ebc564e42ff632 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a48f5c0bb28b4b20256eb1f048488389095e2462",
+  "prompts": {},
+  "sessions": {
+    "s_c78e91e1dce8bd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f34b020c4ffeqfMy4F4un9ZhsX",
+        "model": "unknown"
+      },
+      "human_author": "Austine Onyema <austine.onyema@soaverify.com>"
+    }
+  }
+}
