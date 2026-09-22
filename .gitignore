@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+bun.lock
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env / secrets — never commit credentials
+.env
+.env.*
+!.env.example
