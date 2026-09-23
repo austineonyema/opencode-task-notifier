@@ -11,9 +11,12 @@ OpenCode task-run outcomes arrive as native macOS notifications:
 
 | Event | Notification |
 |---|---|
-| Task finishes | 🟢 **OpenCode** — Task completed — ready for review. |
-| Task errors | 🔴 **OpenCode** — Task encountered an error. |
-| Approval needed | 🟡 **OpenCode** — OpenCode is waiting for your input. |
+| Task finishes | 🟢 **OpenCode — my-project** — "Add login screen — Task completed — ready for review (3m 12s)" |
+| Task errors | 🔴 **OpenCode — my-project** — "Task encountered an error: \<server message\> (3m 12s)" |
+| Approval needed | 🟡 **OpenCode — my-project** — "OpenCode is waiting for your input (action: resource)" |
+
+Titles/body degrade gracefully: if the session title or elapsed time
+can't be resolved, the notification still fires with whatever is known.
 
 Deliberately silent: session start, user-cancelled runs, and anything
 that isn't one of the three outcomes above.
