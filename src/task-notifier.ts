@@ -39,6 +39,8 @@ export interface Notification {
 }
 
 export interface TaskEvent {
+  id?: string
+  created?: number
   type: string
   data?: Record<string, any>
   location?: { directory?: string }
@@ -76,6 +78,45 @@ export function formatElapsed(ms: number): string {
 
 function truncate(value: string, max: number): string {
   return value.length > max ? value.slice(0, max - 1) + "…" : value
+}
+
+/**
+ * Cross-instance duplicate suppression.
+ *
+ * OpenCode instantiates global plugins once per active location (e.g.
+ * home, drizzle-app, soaverify-mobile), and every instance subscribes to
+ * the same server-wide event stream — so one bus event would otherwise
+ * notify once per location. The claim set lives on `globalThis`, which is
+ * shared process-wide, so the first instance to handle an event wins and
+ * the rest skip it. Check-and-add is synchronous, hence atomic on the
+ * single-threaded event loop. Bounded to avoid unbounded growth.
+ */
+const MAX_SEEN_EVENTS = 1000
+
+function seenEvents(): Set<string> {
+  const g = globalThis as Record<string, unknown>
+  let seen = g.__taskNotifierSeenEvents as Set<string> | undefined
+  if (!seen) {
+    seen = new Set<string>()
+    g.__taskNotifierSeenEvents = seen
+  }
+  if (seen.size > MAX_SEEN_EVENTS) seen.clear()
+  return seen
+}
+
+/** Event identity: bus ID when present, type+session+timestamp otherwise. */
+export function eventKey(event: TaskEvent): string {
+  if (event.id) return event.id
+  return `${event.type}:${event.data?.sessionID ?? ""}:${event.created ?? ""}`
+}
+
+/** Returns true exactly once per event per process; false for repeats. */
+export function claimEvent(event: TaskEvent): boolean {
+  const seen = seenEvents()
+  const key = eventKey(event)
+  if (seen.has(key)) return false
+  seen.add(key)
+  return true
 }
 
 /** Map an event + context to a notification, or null for silence. */
@@ -180,6 +221,9 @@ export default Plugin.define({
       try {
         for await (const event of ctx.event.subscribe()) {
           void (async () => {
+            // Skip duplicates from sibling plugin instances (one per
+            // active location) before doing any session lookup work.
+            if (!claimEvent(event)) return
             const notification = buildNotification(
               event,
               await resolveContext((input) => ctx.session.get(input), event),
