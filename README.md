@@ -35,7 +35,7 @@ Optional config file at `~/.config/opencode/task-notifier.json`
 ```
 
 Malformed config falls back to defaults rather than breaking anything.
-After editing, touch `~/.config/opencode/plugins/task-notifier.ts`
+After editing, touch `~/.config/opencode/plugins/task-notifier.js`
 (or restart the server) so the plugin reloads and picks it up.
 
 A working example lives at [`task-notifier.example.json`](task-notifier.example.json) —
@@ -69,8 +69,6 @@ opencode api get /api/plugin | grep task-notifier
 
 ## How it works
 
-## How it works
-
 The plugin subscribes to OpenCode's server event stream. Each event is
 classified (`src/events.ts`), checked against user config (`src/config.ts`),
 enriched with session context (`src/session.ts`), mapped to notification
@@ -85,7 +83,7 @@ we verified empirically (live SSE capture of a full session lifecycle on
 server v2.0.14) that the server never emits it on task completion. The
 reliable signals are `session.execution.succeeded` / `.failed` and
 `permission.asked`. See the comment block at the top of
-`src/task-notifier.ts` for details.
+`src/index.ts` for details.
 
 Notification delivery is fire-and-forget: failures can never break
 or block a session.
