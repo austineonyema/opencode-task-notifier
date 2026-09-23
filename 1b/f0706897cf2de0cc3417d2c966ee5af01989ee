@@ -1,0 +1,23 @@
+src/cli.ts
+  s_c78e91e1dce8bd::t_f1102c8767cd06 1
+package.json
+  s_c78e91e1dce8bd::t_864108b2ba0349 3,6,8,14-26,30,35
+tsconfig.build.json
+  s_c78e91e1dce8bd::t_e41cb9a51f1fe9 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1bf0706897cf2de0cc3417d2c966ee5af01989ee",
+  "prompts": {},
+  "sessions": {
+    "s_c78e91e1dce8bd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f34b020c4ffeqfMy4F4un9ZhsX",
+        "model": "unknown"
+      },
+      "human_author": "Austine Onyema <austine.onyema@soaverify.com>"
+    }
+  }
+}
