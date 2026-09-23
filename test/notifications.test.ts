@@ -4,6 +4,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import plugin, {
   buildNotification,
+  claimEvent,
+  eventKey,
   formatElapsed,
   projectFromDirectory,
   resolveContext,
@@ -162,6 +164,27 @@ describe("resolveContext", () => {
   })
 })
 
+describe("claimEvent", () => {
+  test("prefers the bus event id", () => {
+    expect(eventKey({ id: "evt_1", type: "session.execution.succeeded" })).toBe("evt_1")
+  })
+
+  test("falls back to type+session+timestamp without an id", () => {
+    expect(
+      eventKey({ type: "session.execution.succeeded", data: { sessionID: "ses_a" }, created: 7 }),
+    ).toBe("session.execution.succeeded:ses_a:7")
+  })
+
+  test("claims once, rejects repeats, allows distinct events", () => {
+    const first = { id: "evt_dup_1", type: "session.execution.succeeded" }
+    const repeat = { id: "evt_dup_1", type: "session.execution.succeeded" }
+    const other = { id: "evt_dup_2", type: "session.execution.succeeded" }
+    expect(claimEvent(first)).toBe(true)
+    expect(claimEvent(repeat)).toBe(false)
+    expect(claimEvent(other)).toBe(true)
+  })
+})
+
 describe("delivery", () => {
   let dir: string
   let log: string
@@ -202,20 +225,23 @@ describe("delivery", () => {
     ])
   })
 
-  test("plugin setup sends enriched notifications per outcome", async () => {
-    async function* events() {
-      yield { type: "session.created", data: { sessionID: "ses_1" } }
+  test("sibling setups (one per location) notify only once per event", async () => {
+    const makeEvents = async function* () {
+      yield { id: "evt_multi_1", type: "session.created", data: { sessionID: "ses_1" } }
       yield {
+        id: "evt_multi_2",
         type: "session.execution.succeeded",
         data: { sessionID: "ses_1" },
         location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
       }
       yield {
+        id: "evt_multi_3",
         type: "permission.asked",
         data: { sessionID: "ses_1", action: "external_directory", resources: ["/etc/*"] },
         location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
       }
       yield {
+        id: "evt_multi_4",
         type: "session.execution.failed",
         data: { sessionID: "ses_1", error: { message: "boom" } },
         location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
@@ -228,7 +254,13 @@ describe("delivery", () => {
         location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
       }),
     }
-    await plugin.setup({ event: { subscribe: () => events() }, session } as any)
+    // Simulate three plugin instances (home, drizzle-app, soaverify-mobile)
+    // consuming the same bus events concurrently.
+    await Promise.all([
+      plugin.setup({ event: { subscribe: makeEvents }, session } as any),
+      plugin.setup({ event: { subscribe: makeEvents }, session } as any),
+      plugin.setup({ event: { subscribe: makeEvents }, session } as any),
+    ])
     // Detached spawns can complete out of order; compare as sets.
     expect((await waitForLog(3)).sort()).toEqual(
       [
