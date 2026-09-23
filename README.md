@@ -145,6 +145,7 @@ Ideas under consideration — not commitments. Checked when built.
 - [ ] Click notification → focus the relevant terminal/VS Code window
 - [ ] Migrate config to the standard `ctx.options` mechanism at publish time
 - [ ] Notification history (local log of past banners)
+- [ ] Custom notification icon (today: Script Editor icon via osascript — options: `terminal-notifier` sender spoofing, or a bundled applet `.app` with own `.icns`)
 
 **Platforms & integrations**
 
