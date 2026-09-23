@@ -18,6 +18,26 @@ OpenCode task-run outcomes arrive as native macOS notifications:
 Titles/body degrade gracefully: if the session title or elapsed time
 can't be resolved, the notification still fires with whatever is known.
 
+## Configuration
+
+Optional config file at `~/.config/opencode/task-notifier.json`
+(absent = all notifications on, silent):
+
+```jsonc
+{
+  "completion": true, // task finished
+  "error": true, // task errored
+  "permission": true, // input/approval needed
+  // false | true | "SoundName" | { completion?, error?, permission? }
+  // true → Glass (done) / Basso (error) / Ping (input)
+  "sound": false
+}
+```
+
+Malformed config falls back to defaults rather than breaking anything.
+After editing, touch `~/.config/opencode/plugins/task-notifier.ts`
+(or restart the server) so the plugin reloads and picks it up.
+
 Deliberately silent: session start, user-cancelled runs, and anything
 that isn't one of the three outcomes above.
 
