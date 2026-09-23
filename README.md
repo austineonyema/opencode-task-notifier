@@ -3,15 +3,20 @@
 Native desktop notifications for [OpenCode](https://opencode.ai) sessions.
 Start a long task, leave the terminal, and get notified when it's done.
 
-> **Status:** Phase 1 prototype (macOS only). Not yet an npm package.
+> **Status:** Phase 2 prototype (macOS only). Not yet an npm package.
 
 ## What it does
 
-When an OpenCode session's task run finishes successfully, you get a native
-macOS notification:
+OpenCode task-run outcomes arrive as native macOS notifications:
 
-> **OpenCode**
-> Task completed — ready for review.
+| Event | Notification |
+|---|---|
+| Task finishes | 🟢 **OpenCode** — Task completed — ready for review. |
+| Task errors | 🔴 **OpenCode** — Task encountered an error. |
+| Approval needed | 🟡 **OpenCode** — OpenCode is waiting for your input. |
+
+Deliberately silent: session start, user-cancelled runs, and anything
+that isn't one of the three outcomes above.
 
 ## Requirements
 
@@ -35,17 +40,29 @@ opencode api get /api/plugin | grep task-notifier
 
 ## How it works
 
-The plugin subscribes to OpenCode's server event stream and notifies on
-`session.execution.succeeded`.
+The plugin subscribes to OpenCode's server event stream and maps outcomes
+to notifications with a pure `notificationFor()` function, kept separate
+from delivery so other platforms can be added later.
 
 **Why not `session.idle`?** Although `session.idle` exists in the schema,
 we verified empirically (live SSE capture of a full session lifecycle on
 server v2.0.14) that the server never emits it on task completion. The
-reliable completion signal is `session.execution.succeeded`. See the
-comment block at the top of `src/task-notifier.ts` for details.
+reliable signals are `session.execution.succeeded` / `.failed` and
+`permission.asked`. See the comment block at the top of
+`src/task-notifier.ts` for details.
 
 Notification delivery is fire-and-forget: failures can never break
 or block a session.
+
+## Tests
+
+```bash
+bun install
+bun test
+```
+
+Unit tests cover the event→notification routing table; integration tests
+drive `notifyMacOS` and `setup()` against a shimmed `osascript`.
 
 ## Roadmap
 
