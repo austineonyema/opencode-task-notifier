@@ -1,15 +1,24 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test"
-import { mkdtempSync, readFileSync, existsSync, rmSync } from "node:fs"
+import { mkdtempSync, readFileSync, existsSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import plugin, {
   buildNotification,
   claimEvent,
+  DEFAULT_CONFIG,
   eventKey,
   formatElapsed,
+  isEnabled,
+  kindOf,
+  loadConfig,
   projectFromDirectory,
+  readConfigFile,
   resolveContext,
+  runNotifier,
+  soundFor,
   notifyMacOS,
+  type NotifierConfig,
+  type Notification,
 } from "../src/task-notifier.ts"
 
 describe("projectFromDirectory", () => {
@@ -39,6 +48,85 @@ describe("formatElapsed", () => {
   test("guards invalid input", () => {
     expect(formatElapsed(-5)).toBe("0s")
     expect(formatElapsed(NaN)).toBe("0s")
+  })
+})
+
+describe("loadConfig", () => {
+  test("defaults when absent or malformed", () => {
+    expect(loadConfig(undefined)).toEqual(DEFAULT_CONFIG)
+    expect(loadConfig(null)).toEqual(DEFAULT_CONFIG)
+    expect(loadConfig("nope")).toEqual(DEFAULT_CONFIG)
+    expect(loadConfig([1, 2])).toEqual(DEFAULT_CONFIG)
+    expect(loadConfig({})).toEqual(DEFAULT_CONFIG)
+  })
+  test("respects per-type toggles, ignores junk", () => {
+    expect(loadConfig({ completion: false, error: "yes", permission: 0 })).toEqual({
+      ...DEFAULT_CONFIG,
+      completion: false,
+    })
+  })
+  test("normalizes sound variants", () => {
+    expect(loadConfig({ sound: true }).sound).toBe(true)
+    expect(loadConfig({ sound: "Ping" }).sound).toBe("Ping")
+    expect(loadConfig({ sound: { error: "Basso", permission: false } }).sound).toEqual({
+      error: "Basso",
+      permission: false,
+    })
+    expect(loadConfig({ sound: { error: 42 } }).sound).toEqual({})
+    expect(loadConfig({ sound: 42 }).sound).toBe(false)
+  })
+})
+
+describe("readConfigFile", () => {
+  test("parses a config file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "notifier-cfg-"))
+    try {
+      const path = join(dir, "task-notifier.json")
+      writeFileSync(path, JSON.stringify({ completion: false }))
+      expect(readConfigFile(path)).toEqual({ completion: false })
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+  test("returns undefined for missing or invalid files", () => {
+    expect(readConfigFile(join(tmpdir(), "notifier-nope", "x.json"))).toBeUndefined()
+    const dir = mkdtempSync(join(tmpdir(), "notifier-cfg-"))
+    try {
+      const path = join(dir, "bad.json")
+      writeFileSync(path, "{not json")
+      expect(readConfigFile(path)).toBeUndefined()
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+})
+
+describe("kindOf / isEnabled / soundFor", () => {
+  test("classifies notifiable events", () => {
+    expect(kindOf({ type: "session.execution.succeeded" })).toBe("completion")
+    expect(kindOf({ type: "session.execution.failed" })).toBe("error")
+    expect(kindOf({ type: "permission.asked" })).toBe("permission")
+    expect(kindOf({ type: "session.created" })).toBeNull()
+    expect(kindOf({ type: "session.idle" })).toBeNull()
+  })
+  test("toggles gate each kind", () => {
+    const config = { ...DEFAULT_CONFIG, permission: false }
+    expect(isEnabled(config, "completion")).toBe(true)
+    expect(isEnabled(config, "permission")).toBe(false)
+  })
+  test("sound resolution", () => {
+    expect(soundFor(DEFAULT_CONFIG, "completion")).toBeNull()
+    expect(soundFor({ ...DEFAULT_CONFIG, sound: true }, "completion")).toBe("Glass")
+    expect(soundFor({ ...DEFAULT_CONFIG, sound: true }, "error")).toBe("Basso")
+    expect(soundFor({ ...DEFAULT_CONFIG, sound: true }, "permission")).toBe("Ping")
+    expect(soundFor({ ...DEFAULT_CONFIG, sound: "Tink" }, "error")).toBe("Tink")
+    expect(soundFor({ ...DEFAULT_CONFIG, sound: "" }, "error")).toBeNull()
+    const perType = { ...DEFAULT_CONFIG, sound: { error: "Basso", permission: false } as const }
+    expect(soundFor(perType, "error")).toBe("Basso")
+    expect(soundFor(perType, "permission")).toBeNull()
+    expect(soundFor(perType, "completion")).toBeNull()
+    const perTypeTrue = { ...DEFAULT_CONFIG, sound: { error: true } as const }
+    expect(soundFor(perTypeTrue, "error")).toBe("Basso")
   })
 })
 
@@ -185,6 +273,13 @@ describe("claimEvent", () => {
   })
 })
 
+describe("plugin shape", () => {
+  test("exports the v2 plugin definition", () => {
+    expect(plugin.id).toBe("task-notifier")
+    expect(typeof plugin.setup).toBe("function")
+  })
+})
+
 describe("delivery", () => {
   let dir: string
   let log: string
@@ -218,56 +313,114 @@ describe("delivery", () => {
     return readLog()
   }
 
+  const sessionStub = {
+    get: async () => ({
+      title: "Add login screen",
+      time: { created: 1000, updated: 193000 },
+      location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
+    }),
+  }
+
+  async function* demoEvents(prefix: string) {
+    yield { id: `${prefix}_1`, type: "session.created", data: { sessionID: "ses_1" } }
+    yield {
+      id: `${prefix}_2`,
+      type: "session.execution.succeeded",
+      data: { sessionID: "ses_1" },
+      location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
+    }
+    yield {
+      id: `${prefix}_3`,
+      type: "permission.asked",
+      data: { sessionID: "ses_1", action: "external_directory", resources: ["/etc/*"] },
+      location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
+    }
+    yield {
+      id: `${prefix}_4`,
+      type: "session.execution.failed",
+      data: { sessionID: "ses_1", error: { message: "boom" } },
+      location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
+    }
+  }
+
   test("notifyMacOS invokes osascript with title and body", async () => {
-    notifyMacOS({ title: "🟢 OpenCode", body: "Task completed — ready for review." })
+    notifyMacOS({ title: "🟢 OpenCode", body: "Task completed — ready for review." }, null)
     expect(await waitForLog(1)).toEqual([
       `-e display notification "Task completed — ready for review." with title "🟢 OpenCode"`,
     ])
   })
 
-  test("sibling setups (one per location) notify only once per event", async () => {
-    const makeEvents = async function* () {
-      yield { id: "evt_multi_1", type: "session.created", data: { sessionID: "ses_1" } }
-      yield {
-        id: "evt_multi_2",
-        type: "session.execution.succeeded",
-        data: { sessionID: "ses_1" },
-        location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
-      }
-      yield {
-        id: "evt_multi_3",
-        type: "permission.asked",
-        data: { sessionID: "ses_1", action: "external_directory", resources: ["/etc/*"] },
-        location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
-      }
-      yield {
-        id: "evt_multi_4",
-        type: "session.execution.failed",
-        data: { sessionID: "ses_1", error: { message: "boom" } },
-        location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
-      }
-    }
-    const session = {
-      get: async () => ({
-        title: "Add login screen",
-        time: { created: 1000, updated: 193000 },
-        location: { directory: "/Users/austine_onyema/Projects/drizzle-app" },
-      }),
-    }
-    // Simulate three plugin instances (home, drizzle-app, soaverify-mobile)
-    // consuming the same bus events concurrently.
-    await Promise.all([
-      plugin.setup({ event: { subscribe: makeEvents }, session } as any),
-      plugin.setup({ event: { subscribe: makeEvents }, session } as any),
-      plugin.setup({ event: { subscribe: makeEvents }, session } as any),
+  test("notifyMacOS appends the sound name when given", async () => {
+    notifyMacOS({ title: "🔴 OpenCode", body: "Task encountered an error." }, "Basso")
+    expect(await waitForLog(1)).toEqual([
+      `-e display notification "Task encountered an error." with title "🔴 OpenCode" sound name "Basso"`,
     ])
+  })
+
+  test("runNotifier sends enriched notifications per outcome", async () => {
+    const sounds: Record<string, string | null> = {}
+    await runNotifier({
+      subscribe: () => demoEvents("evt_run1"),
+      getSession: sessionStub.get,
+      getConfig: () => ({ ...DEFAULT_CONFIG, sound: true }),
+      notify: (n: Notification, sound: string | null) => {
+        sounds[n.title] = sound
+        notifyMacOS(n, sound)
+      },
+    })
     // Detached spawns can complete out of order; compare as sets.
     expect((await waitForLog(3)).sort()).toEqual(
       [
-        `-e display notification "Add login screen — Task completed — ready for review (3m 12s)" with title "🟢 OpenCode — drizzle-app"`,
-        `-e display notification "Add login screen — OpenCode is waiting for your input (external_directory: /etc/*)" with title "🟡 OpenCode — drizzle-app"`,
-        `-e display notification "Add login screen — Task encountered an error: boom (3m 12s)" with title "🔴 OpenCode — drizzle-app"`,
+        `-e display notification "Add login screen — Task completed — ready for review (3m 12s)" with title "🟢 OpenCode — drizzle-app" sound name "Glass"`,
+        `-e display notification "Add login screen — OpenCode is waiting for your input (external_directory: /etc/*)" with title "🟡 OpenCode — drizzle-app" sound name "Ping"`,
+        `-e display notification "Add login screen — Task encountered an error: boom (3m 12s)" with title "🔴 OpenCode — drizzle-app" sound name "Basso"`,
       ].sort(),
     )
+    expect(sounds).toEqual({
+      "🟢 OpenCode — drizzle-app": "Glass",
+      "🟡 OpenCode — drizzle-app": "Ping",
+      "🔴 OpenCode — drizzle-app": "Basso",
+    })
+  })
+
+  test("runNotifier respects disabled types", async () => {
+    const seen: string[] = []
+    await runNotifier({
+      subscribe: () => demoEvents("evt_run2"),
+      getSession: sessionStub.get,
+      getConfig: () => ({ ...DEFAULT_CONFIG, permission: false, error: false }),
+      notify: (n: Notification) => {
+        seen.push(n.title)
+      },
+    })
+    expect(seen).toEqual(["🟢 OpenCode — drizzle-app"])
+  })
+
+  test("sibling runNotifiers (one per location) notify only once per event", async () => {
+    const seen: string[] = []
+    const notify = (n: Notification) => {
+      seen.push(`${n.title} | ${n.body}`)
+    }
+    const deps = {
+      subscribe: () => demoEvents("evt_run3"),
+      getSession: sessionStub.get,
+      getConfig: () => DEFAULT_CONFIG,
+      notify: (n: Notification) => notify(n),
+    }
+    // Simulate three plugin instances (home, drizzle-app, soaverify-mobile)
+    // consuming the same bus events concurrently.
+    await Promise.all([runNotifier(deps), runNotifier(deps), runNotifier(deps)])
+    expect(seen.sort()).toEqual(
+      [
+        "🟢 OpenCode — drizzle-app | Add login screen — Task completed — ready for review (3m 12s)",
+        "🟡 OpenCode — drizzle-app | Add login screen — OpenCode is waiting for your input (external_directory: /etc/*)",
+        "🔴 OpenCode — drizzle-app | Add login screen — Task encountered an error: boom (3m 12s)",
+      ].sort(),
+    )
+  })
+
+  test("runNotifier passes the notifier config type", () => {
+    const config: NotifierConfig = DEFAULT_CONFIG
+    expect(config.completion).toBe(true)
   })
 })
