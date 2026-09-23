@@ -1,0 +1,21 @@
+test/notifications.test.ts
+  s_c78e91e1dce8bd::t_22f76cffe68513 68-80
+  s_c78e91e1dce8bd::t_b5f08ff2c5e9e3 96-97
+  s_c78e91e1dce8bd::t_a5e41043ef4b7e 101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "269fd6f0db8b16238bb0e257b18de63833306e5c",
+  "prompts": {},
+  "sessions": {
+    "s_c78e91e1dce8bd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f34b020c4ffeqfMy4F4un9ZhsX",
+        "model": "unknown"
+      },
+      "human_author": "Austine Onyema <austine.onyema@soaverify.com>"
+    }
+  }
+}
