@@ -52,10 +52,38 @@ that isn't one of the three outcomes above.
 
 ## Install
 
+From source (current):
+
 ```bash
 bun install
 bun run deploy        # build + install the plugin (server hot-reloads it)
 ```
+
+From npm (once published — the name is currently unclaimed;
+publishing waits on explicit approval and is NOT done yet):
+
+```bash
+opencode plugin add opencode-task-notifier
+```
+
+or via `opencode.json`:
+
+```jsonc
+{
+  "plugins": [
+    {
+      "package": "opencode-task-notifier",
+      "options": {
+        "permission": true,
+        "sound": { "completion": true }
+      }
+    }
+  ]
+}
+```
+
+`options` merge over the config file (later wins), so npm installs can
+be configured without any files.
 
 Or step by step with the built-in CLI:
 
