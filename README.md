@@ -57,6 +57,11 @@ reliable signals are `session.execution.succeeded` / `.failed` and
 Notification delivery is fire-and-forget: failures can never break
 or block a session.
 
+OpenCode instantiates global plugins once per active location, so every
+instance sees the same server-wide events. A process-shared claim set
+(`claimEvent()`) guarantees one banner per event no matter how many
+locations are active.
+
 ## Tests
 
 ```bash
