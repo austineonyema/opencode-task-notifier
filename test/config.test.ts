@@ -7,6 +7,7 @@ import {
   isEnabled,
   loadConfig,
   readConfigFile,
+  resolveConfig,
   soundFor,
 } from "../src/config.ts"
 
@@ -33,6 +34,22 @@ describe("loadConfig", () => {
     })
     expect(loadConfig({ sound: { error: 42 } }).sound).toEqual({})
     expect(loadConfig({ sound: 42 }).sound).toBe(false)
+  })
+})
+
+describe("resolveConfig", () => {
+  test("layers defaults, file, then options", () => {
+    expect(resolveConfig(undefined, undefined)).toEqual(DEFAULT_CONFIG)
+    expect(resolveConfig({ completion: false }, undefined)).toEqual({
+      ...DEFAULT_CONFIG,
+      completion: false,
+    })
+    expect(resolveConfig({ completion: false }, { completion: true })).toEqual(DEFAULT_CONFIG)
+    expect(resolveConfig("junk", { error: false })).toEqual({ ...DEFAULT_CONFIG, error: false })
+  })
+  test("options replace file values wholesale", () => {
+    const config = resolveConfig({ sound: { error: "Basso" } }, { sound: true })
+    expect(config.sound).toBe(true)
   })
 })
 

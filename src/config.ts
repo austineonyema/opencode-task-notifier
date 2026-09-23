@@ -1,16 +1,11 @@
 /**
- * User configuration.
+ * User configuration: defaults ← config file ← plugin `options`.
  *
  * File: `~/.config/opencode/task-notifier.json` (all keys optional).
- * Absent or malformed config falls back to defaults — notifications
- * always work out of the box.
- *
- * A dedicated config file is used instead of `ctx.options` on purpose:
- * this plugin loads as a loose file from the global plugins directory,
- * and registering it a second time through the `plugins` array (the only
- * way to pass `ctx.options`) would create duplicate configured instances.
- * When this becomes an npm package, config migrates to the standard
- * `ctx.options` mechanism.
+ * `options`: object form of the `plugins` array in `opencode.json`
+ * (the mechanism npm installs use). Later sources win, merged at the
+ * top level. Absent or malformed input falls back to defaults —
+ * notifications always work out of the box.
  */
 import { readFileSync } from "node:fs"
 import { homedir } from "node:os"
@@ -80,6 +75,18 @@ export function readConfigFile(path: string = CONFIG_FILE): unknown {
   } catch {
     return undefined
   }
+}
+
+/**
+ * Effective config: defaults ← config file ← plugin `options`
+ * (npm consumers pass `options` through the `plugins` array in
+ * `opencode.json`). Later sources win, merged at the top level —
+ * e.g. `options.sound` replaces the file's `sound` wholesale.
+ * Never throws: falls back to defaults.
+ */
+export function resolveConfig(file: unknown, options?: Record<string, unknown>): NotifierConfig {
+  const base = file && typeof file === "object" && !Array.isArray(file) ? file : {}
+  return loadConfig({ ...base, ...(options ?? {}) })
 }
 
 export function isEnabled(config: NotifierConfig, kind: NotificationKind): boolean {

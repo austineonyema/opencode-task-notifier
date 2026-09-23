@@ -36,11 +36,14 @@ export default Plugin.define({
     // Each event is handled independently so a slow session lookup
     // never delays other notifications.
     void runNotifier(
-      liveDeps({
-        subscribe: () => ctx.event.subscribe(),
-        getSession: (input) => ctx.session.get(input),
-        notify: (notification, sound) => notifyMacOS(notification, sound),
-      }),
+      liveDeps(
+        {
+          subscribe: () => ctx.event.subscribe(),
+          getSession: (input) => ctx.session.get(input),
+          notify: (notification, sound) => notifyMacOS(notification, sound),
+        },
+        ctx.options,
+      ),
     )
   },
 })

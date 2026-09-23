@@ -4,7 +4,7 @@
  * tests inject stubs.
  */
 import { claimEvent, kindOf, type NotificationKind, type TaskEvent } from "./events.ts"
-import { isEnabled, loadConfig, readConfigFile, soundFor, type NotifierConfig } from "./config.ts"
+import { isEnabled, readConfigFile, resolveConfig, soundFor, type NotifierConfig } from "./config.ts"
 import { buildNotification, type Notification } from "./notifications.ts"
 import { resolveContext, type SessionGetter } from "./session.ts"
 
@@ -39,14 +39,17 @@ export async function runNotifier(deps: NotifierDeps): Promise<void> {
   }
 }
 
-/** Production dependencies: live bus, session lookup, config file, macOS. */
-export function liveDeps(overrides: {
-  subscribe: () => AsyncIterable<TaskEvent>
-  getSession: SessionGetter
-  notify: (notification: Notification, sound: string | null) => void
-}): NotifierDeps {
+/** Production dependencies: live bus, session lookup, layered config, macOS. */
+export function liveDeps(
+  overrides: {
+    subscribe: () => AsyncIterable<TaskEvent>
+    getSession: SessionGetter
+    notify: (notification: Notification, sound: string | null) => void
+  },
+  options?: Record<string, unknown>,
+): NotifierDeps {
   return {
     ...overrides,
-    getConfig: () => loadConfig(readConfigFile()),
+    getConfig: () => resolveConfig(readConfigFile(), options),
   }
 }
