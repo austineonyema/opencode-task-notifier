@@ -1,0 +1,24 @@
+src/index.ts
+  s_c78e91e1dce8bd::t_b0afe9a978f15b 2
+src/commands.ts
+  s_c78e91e1dce8bd::t_cb63606753beba 22
+README.md
+  s_c78e91e1dce8bd::t_7f1f7783cba9d2 69-72
+  s_c78e91e1dce8bd::t_6a01d436916a5b 111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "57fc071ffd9ad6e0750d0311ebd530b9d45cee79",
+  "prompts": {},
+  "sessions": {
+    "s_c78e91e1dce8bd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f34b020c4ffeqfMy4F4un9ZhsX",
+        "model": "unknown"
+      },
+      "human_author": "Austine Onyema <austine.onyema@soaverify.com>"
+    }
+  }
+}
