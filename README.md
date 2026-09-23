@@ -3,7 +3,7 @@
 Native desktop notifications for [OpenCode](https://opencode.ai) sessions.
 Start a long task, leave the terminal, and get notified when it's done.
 
-> **Status:** Phase 4 prototype (macOS only). Not yet an npm package.
+> **Status:** Phase 5 package layout (macOS only). Private prototype — not published.
 
 ## What it does
 
@@ -52,13 +52,16 @@ that isn't one of the three outcomes above.
 
 ## Install (manual, for now)
 
-Copy the plugin into OpenCode's global plugin directory:
+Build the single-file bundle and copy it into OpenCode's global plugin
+directory:
 
 ```bash
-cp src/task-notifier.ts ~/.config/opencode/plugins/task-notifier.ts
+bun run deploy
 ```
 
-The server hot-reloads plugins — no restart needed. Confirm it's registered:
+(`deploy` = `bun run build` + copy `dist/task-notifier.js` to
+`~/.config/opencode/plugins/`.) The server hot-reloads plugins — no
+restart needed. Confirm it's registered:
 
 ```bash
 opencode api get /api/plugin | grep task-notifier
@@ -66,12 +69,16 @@ opencode api get /api/plugin | grep task-notifier
 
 ## How it works
 
+## How it works
+
 The plugin subscribes to OpenCode's server event stream. Each event is
-classified (`kindOf`), checked against user config, enriched with session
-context (`resolveContext`), mapped to a notification (`buildNotification`),
-and delivered — all orchestrated by `runNotifier()` with injectable
-dependencies, so event handling stays separate from delivery and other
-platforms can be added later.
+classified (`src/events.ts`), checked against user config (`src/config.ts`),
+enriched with session context (`src/session.ts`), mapped to notification
+text (`src/notifications.ts`), and delivered (`src/macos.ts`) — all
+orchestrated by `runNotifier()` (`src/notifier.ts`) with injectable
+dependencies. `src/index.ts` is the thin OpenCode entry point. Event
+handling stays separate from delivery so other platforms can be added
+later.
 
 **Why not `session.idle`?** Although `session.idle` exists in the schema,
 we verified empirically (live SSE capture of a full session lifecycle on
@@ -88,11 +95,14 @@ instance sees the same server-wide events. A process-shared claim set
 (`claimEvent()`) guarantees one banner per event no matter how many
 locations are active.
 
-## Tests
+## Develop
 
 ```bash
 bun install
-bun test
+bun test        # 32 tests (bun)
+bun run typecheck  # strict tsc --noEmit
+bun run build   # dist/task-notifier.js (single-file bundle)
+bun run deploy  # build + install to ~/.config/opencode/plugins/
 ```
 
 Unit tests cover config validation, the event→notification routing
@@ -107,7 +117,7 @@ per-type toggles/sound; integration tests drive `notifyMacOS` and
   waiting-for-input (`permission.asked`)
 - [x] **Phase 3** — richer context (project name, session title, elapsed time)
 - [x] **Phase 4** — user configuration (per-type toggles, sound)
-- [ ] **Phase 5** — proper npm package structure
+- [x] **Phase 5** — proper npm package structure
 - [ ] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
 - [ ] **Phase 7** — npm distribution
 
