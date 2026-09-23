@@ -128,6 +128,32 @@ per-type toggles/sound; integration tests drive `notifyMacOS` and
 - [x] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
 - [ ] **Phase 7** — npm distribution
 
+## Backlog
+
+Ideas under consideration — not commitments. Checked when built.
+
+**Notification quality**
+
+- [ ] Quiet-hours mode (no banners in a configured time window)
+- [ ] Minimum task duration (skip banners for runs shorter than N seconds)
+- [ ] Active-session awareness (don't banner the session you're looking at)
+- [ ] Per-session ignore list (e.g. silence a noisy dev session)
+- [ ] Notification deduplication window tuning (beyond the current exact-once claim)
+
+**Context & delivery**
+
+- [ ] Click notification → focus the relevant terminal/VS Code window
+- [ ] Migrate config to the standard `ctx.options` mechanism at publish time
+- [ ] Notification history (local log of past banners)
+
+**Platforms & integrations**
+
+- [ ] Windows notification support
+- [ ] Linux notification support
+- [ ] VS Code extension integration
+- [ ] Menu-bar status indicator
+- [ ] Mobile notification bridge / remote session awareness
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
