@@ -14,7 +14,7 @@
   "scripts": {
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "build": "bun build src/index.ts --outfile dist/task-notifier.js --external @opencode/plugin",
+    "build": "bun build src/index.ts --target node --outfile dist/task-notifier.js --external @opencode/plugin",
     "deploy": "bun run build && cp dist/task-notifier.js ~/.config/opencode/plugins/task-notifier.js"
   },
   "devDependencies": {
