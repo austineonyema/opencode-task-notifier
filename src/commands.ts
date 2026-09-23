@@ -112,7 +112,8 @@ export function uninstallPlugin(
 
 export function statusPlugin(sys: Sys, paths: Paths): Result {
   const lines = ["Task Notifier status:"]
-  if (sys.exists(paths.pluginFile)) {
+  const installed = sys.exists(paths.pluginFile)
+  if (installed) {
     const size = sys.size(paths.pluginFile)
     lines.push(
       `  plugin: installed (${paths.pluginFile}${size !== null ? `, ${(size / 1024).toFixed(1)} KB` : ""})`,
@@ -121,9 +122,15 @@ export function statusPlugin(sys: Sys, paths: Paths): Result {
     lines.push(`  plugin: NOT installed (expected at ${paths.pluginFile})`)
   }
   const reg = registered(sys.run)
-  lines.push(
-    `  server: ${reg === true ? "registered and active" : reg === false ? "file present but not registered" : "unknown (server unreachable)"}`,
-  )
+  const server =
+    reg === true
+      ? "registered and active"
+      : reg === false
+        ? installed
+          ? "file present but not registered"
+          : "not registered (plugin not installed)"
+        : "unknown (server unreachable)"
+  lines.push(`  server: ${server}`)
   if (sys.exists(paths.configFile)) {
     try {
       const config = loadConfig(JSON.parse(sys.read(paths.configFile)))
