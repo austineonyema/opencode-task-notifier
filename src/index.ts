@@ -1,5 +1,5 @@
 /**
- * task-notifier — OpenCode Task Notifier (Phase 5 package layout).
+ * task-notifier — OpenCode Task Notifier.
  *
  * Global OpenCode plugin (v2 API) that sends native macOS notifications
  * for session task-run outcomes, enriched with project, session, and

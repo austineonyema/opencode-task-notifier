@@ -66,6 +66,10 @@ bun src/cli.ts test                      # send a sample notification
 bun src/cli.ts uninstall [--remove-config]
 ```
 
+The `test` sample is synthetic (project `cli-test`) — it proves delivery
+and your sound config work. Real banners always resolve the project from
+the session's own directory and carry its server-generated title.
+
 Confirm registration any time:
 
 ```bash
@@ -104,7 +108,7 @@ locations are active.
 bun install
 bun test        # 32 tests (bun)
 bun run typecheck  # strict tsc --noEmit
-bun run build   # dist/task-notifier.js (single-file bundle)
+bun run build   # dist/index.js + dist/cli.js (bundles)
 bun run deploy  # build + install to ~/.config/opencode/plugins/
 ```
 

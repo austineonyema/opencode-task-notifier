@@ -19,7 +19,7 @@ export interface Sys {
 }
 
 export interface Paths {
-  /** Bundled plugin to install, e.g. `<repo>/dist/task-notifier.js`. */
+  /** Bundled plugin to install, e.g. `<repo>/dist/index.js`. */
   bundleFile: string
   /** Installed plugin, e.g. `~/.config/opencode/plugins/task-notifier.js`. */
   pluginFile: string
