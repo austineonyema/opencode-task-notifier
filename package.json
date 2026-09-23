@@ -1,12 +1,21 @@
 {
   "name": "opencode-task-notifier",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Native desktop notifications for OpenCode sessions (prototype)",
   "license": "MIT",
+  "keywords": ["opencode", "plugin", "notifications", "macos"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/austineonyema/opencode-task-notifier.git"
+  },
+  "files": ["dist"],
   "scripts": {
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "build": "bun build src/index.ts --outfile dist/task-notifier.js --external @opencode/plugin",
+    "deploy": "bun run build && cp dist/task-notifier.js ~/.config/opencode/plugins/task-notifier.js"
   },
   "devDependencies": {
     "@opencode/plugin": "2.0.11",
