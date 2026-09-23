@@ -3,7 +3,7 @@
 Native desktop notifications for [OpenCode](https://opencode.ai) sessions.
 Start a long task, leave the terminal, and get notified when it's done.
 
-> **Status:** Phase 2 prototype (macOS only). Not yet an npm package.
+> **Status:** Phase 4 prototype (macOS only). Not yet an npm package.
 
 ## What it does
 
@@ -38,6 +38,9 @@ Malformed config falls back to defaults rather than breaking anything.
 After editing, touch `~/.config/opencode/plugins/task-notifier.ts`
 (or restart the server) so the plugin reloads and picks it up.
 
+A working example lives at [`task-notifier.example.json`](task-notifier.example.json) —
+copy it to `~/.config/opencode/task-notifier.json` and adjust.
+
 Deliberately silent: session start, user-cancelled runs, and anything
 that isn't one of the three outcomes above.
 
@@ -63,9 +66,12 @@ opencode api get /api/plugin | grep task-notifier
 
 ## How it works
 
-The plugin subscribes to OpenCode's server event stream and maps outcomes
-to notifications with a pure `notificationFor()` function, kept separate
-from delivery so other platforms can be added later.
+The plugin subscribes to OpenCode's server event stream. Each event is
+classified (`kindOf`), checked against user config, enriched with session
+context (`resolveContext`), mapped to a notification (`buildNotification`),
+and delivered — all orchestrated by `runNotifier()` with injectable
+dependencies, so event handling stays separate from delivery and other
+platforms can be added later.
 
 **Why not `session.idle`?** Although `session.idle` exists in the schema,
 we verified empirically (live SSE capture of a full session lifecycle on
@@ -89,18 +95,21 @@ bun install
 bun test
 ```
 
-Unit tests cover the event→notification routing table; integration tests
-drive `notifyMacOS` and `setup()` against a shimmed `osascript`.
+Unit tests cover config validation, the event→notification routing
+table, context resolution and fallbacks, cross-instance dedupe, and
+per-type toggles/sound; integration tests drive `notifyMacOS` and
+`runNotifier()` against a shimmed `osascript`.
 
 ## Roadmap
 
-- **Phase 2** — distinct notifications: error (`session.execution.failed`),
+- [x] **Phase 1** — completion notification prototype
+- [x] **Phase 2** — distinct notifications: error (`session.execution.failed`),
   waiting-for-input (`permission.asked`)
-- **Phase 3** — richer context (project name, session title, elapsed time)
-- **Phase 4** — user configuration (per-type toggles, sound, quiet mode)
-- **Phase 5** — proper npm package structure
-- **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
-- **Phase 7** — npm distribution
+- [x] **Phase 3** — richer context (project name, session title, elapsed time)
+- [x] **Phase 4** — user configuration (per-type toggles, sound)
+- [ ] **Phase 5** — proper npm package structure
+- [ ] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
+- [ ] **Phase 7** — npm distribution
 
 ## License
 
