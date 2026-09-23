@@ -39,7 +39,7 @@ export interface Result {
 export function pluginPaths(home: string, repoRoot: string): Paths {
   const base = `${home}/.config/opencode`
   return {
-    bundleFile: `${repoRoot}/dist/task-notifier.js`,
+    bundleFile: `${repoRoot}/dist/index.js`,
     pluginFile: `${base}/plugins/task-notifier.js`,
     configFile: `${base}/task-notifier.json`,
     exampleFile: `${repoRoot}/task-notifier.example.json`,

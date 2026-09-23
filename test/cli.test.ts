@@ -39,7 +39,7 @@ describe("pluginPaths", () => {
   test("derives the four locations", () => {
     const paths = pluginPaths("/home/u", "/repo")
     expect(paths).toEqual({
-      bundleFile: "/repo/dist/task-notifier.js",
+      bundleFile: "/repo/dist/index.js",
       pluginFile: "/home/u/.config/opencode/plugins/task-notifier.js",
       configFile: "/home/u/.config/opencode/task-notifier.json",
       exampleFile: "/repo/task-notifier.example.json",
