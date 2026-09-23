@@ -50,18 +50,23 @@ that isn't one of the three outcomes above.
 - OpenCode v2.x with the `@opencode/plugin` v2 API
   (verified against server v2.0.14 / `@opencode/plugin` 2.0.11)
 
-## Install (manual, for now)
-
-Build the single-file bundle and copy it into OpenCode's global plugin
-directory:
+## Install
 
 ```bash
-bun run deploy
+bun install
+bun run deploy        # build + install the plugin (server hot-reloads it)
 ```
 
-(`deploy` = `bun run build` + copy `dist/task-notifier.js` to
-`~/.config/opencode/plugins/`.) The server hot-reloads plugins — no
-restart needed. Confirm it's registered:
+Or step by step with the built-in CLI:
+
+```bash
+bun src/cli.ts install [--with-config]   # build (if needed) + install
+bun src/cli.ts status                    # plugin / server / config state
+bun src/cli.ts test                      # send a sample notification
+bun src/cli.ts uninstall [--remove-config]
+```
+
+Confirm registration any time:
 
 ```bash
 opencode api get /api/plugin | grep task-notifier
@@ -116,7 +121,7 @@ per-type toggles/sound; integration tests drive `notifyMacOS` and
 - [x] **Phase 3** — richer context (project name, session title, elapsed time)
 - [x] **Phase 4** — user configuration (per-type toggles, sound)
 - [x] **Phase 5** — proper npm package structure
-- [ ] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
+- [x] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
 - [ ] **Phase 7** — npm distribution
 
 ## License
