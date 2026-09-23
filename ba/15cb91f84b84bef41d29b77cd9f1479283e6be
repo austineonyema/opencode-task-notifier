@@ -1,0 +1,21 @@
+src/task-notifier.ts
+  s_c78e91e1dce8bd::t_b68a2df0293df5 224-226
+  s_c78e91e1dce8bd::t_b2ad1d783fd51a 42-43
+  s_c78e91e1dce8bd::t_d956450b0e9e9c 83-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ba15cb91f84b84bef41d29b77cd9f1479283e6be",
+  "prompts": {},
+  "sessions": {
+    "s_c78e91e1dce8bd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f34b020c4ffeqfMy4F4un9ZhsX",
+        "model": "unknown"
+      },
+      "human_author": "Austine Onyema <austine.onyema@soaverify.com>"
+    }
+  }
+}
