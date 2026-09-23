@@ -1,9 +1,6 @@
 /**
- * Session context resolution: project, title, elapsed time.
- *
- * Titles are server-generated metadata; nothing is summarized from model
- * output. All resolution is best-effort — callers must still notify when
- * lookups fail.
+ * Event + context → notification text. Server metadata only —
+ * never model output.
  */
 import { projectFromDirectory } from "./session.ts"
 import type { SessionContextInfo } from "./session.ts"

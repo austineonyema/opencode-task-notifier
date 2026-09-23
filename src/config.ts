@@ -1,11 +1,7 @@
 /**
- * User configuration: defaults ← config file ← plugin `options`.
- *
- * File: `~/.config/opencode/task-notifier.json` (all keys optional).
- * `options`: object form of the `plugins` array in `opencode.json`
- * (the mechanism npm installs use). Later sources win, merged at the
- * top level. Absent or malformed input falls back to defaults —
- * notifications always work out of the box.
+ * User config: defaults ← `~/.config/opencode/task-notifier.json`
+ * ← `options` from the `plugins` array in `opencode.json`.
+ * Later wins; anything missing or malformed falls back to defaults.
  */
 import { readFileSync } from "node:fs"
 import { homedir } from "node:os"
@@ -77,13 +73,7 @@ export function readConfigFile(path: string = CONFIG_FILE): unknown {
   }
 }
 
-/**
- * Effective config: defaults ← config file ← plugin `options`
- * (npm consumers pass `options` through the `plugins` array in
- * `opencode.json`). Later sources win, merged at the top level —
- * e.g. `options.sound` replaces the file's `sound` wholesale.
- * Never throws: falls back to defaults.
- */
+/** Merge order: defaults, file, options. Never throws. */
 export function resolveConfig(file: unknown, options?: Record<string, unknown>): NotifierConfig {
   const base = file && typeof file === "object" && !Array.isArray(file) ? file : {}
   return loadConfig({ ...base, ...(options ?? {}) })

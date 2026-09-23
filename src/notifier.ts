@@ -1,7 +1,5 @@
 /**
- * The notifier loop with injectable dependencies (config source, session
- * lookup, delivery). The plugin entry wires the real OpenCode context;
- * tests inject stubs.
+ * Event loop with injectable deps (tests inject stubs).
  */
 import { claimEvent, kindOf, type NotificationKind, type TaskEvent } from "./events.ts"
 import { isEnabled, readConfigFile, resolveConfig, soundFor, type NotifierConfig } from "./config.ts"
@@ -20,8 +18,7 @@ export async function runNotifier(deps: NotifierDeps): Promise<void> {
   try {
     for await (const event of deps.subscribe()) {
       void (async () => {
-        // Skip duplicates from sibling plugin instances (one per
-        // active location) before doing any session lookup work.
+        // One banner per event across sibling instances.
         if (!claimEvent(event)) return
         const kind: NotificationKind | null = kindOf(event)
         if (!kind || !isEnabled(config, kind)) return
@@ -39,7 +36,7 @@ export async function runNotifier(deps: NotifierDeps): Promise<void> {
   }
 }
 
-/** Production dependencies: live bus, session lookup, layered config, macOS. */
+/** Production deps: live bus, session lookup, layered config, macOS. */
 export function liveDeps(
   overrides: {
     subscribe: () => AsyncIterable<TaskEvent>

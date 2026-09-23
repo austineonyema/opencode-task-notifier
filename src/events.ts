@@ -25,15 +25,10 @@ export function kindOf(event: TaskEvent): NotificationKind | null {
 }
 
 /**
- * Cross-instance duplicate suppression.
- *
- * OpenCode instantiates global plugins once per active location, and every
- * instance subscribes to the same server-wide event stream — so one bus
- * event would otherwise notify once per location. The claim set lives on
- * `globalThis`, which is shared process-wide, so the first instance to
- * handle an event wins and the rest skip it. Check-and-add is synchronous,
- * hence atomic on the single-threaded event loop. Bounded to avoid
- * unbounded growth.
+ * One bus event would otherwise notify once per location, because
+ * OpenCode instantiates global plugins per active location. The claim
+ * set lives on `globalThis` (shared process-wide): first instance to
+ * handle an event wins. Synchronous check-and-add keeps it atomic.
  */
 const MAX_SEEN_EVENTS = 1000
 

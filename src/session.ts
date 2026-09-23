@@ -35,11 +35,7 @@ export function formatElapsed(ms: number): string {
   return restMinutes === 0 ? `${hours}h` : `${hours}h ${restMinutes}m`
 }
 
-/**
- * Best-effort context for an event. Never throws: on any failure it
- * falls back to project-only (or null when even that is unavailable),
- * so the notification still goes out.
- */
+/** Best-effort: never throws, still notifies when lookups fail. */
 export async function resolveContext(
   get: SessionGetter,
   event: TaskEvent,
