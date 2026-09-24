@@ -14,7 +14,7 @@ export function installOsascriptShim(): Shim {
   const dir = mkdtempSync(join(tmpdir(), "notifier-test-"))
   const log = join(dir, "osascript.log")
   const shim = join(dir, "osascript")
-  writeFileSync(shim, `#!/bin/zsh\nprint -r -- "$@" >> "${log}"\n`)
+  writeFileSync(shim, `#!/bin/sh\nprintf '%s\\n' "$*" >> "${log}"\n`)
   execFileSync("chmod", ["+x", shim])
   const savedPath = process.env.PATH
   process.env.PATH = `${dir}:${savedPath ?? ""}`
