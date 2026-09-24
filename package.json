@@ -1,7 +1,6 @@
 {
   "name": "opencode-task-notifier",
   "version": "0.7.0",
-  "private": true,
   "type": "module",
   "description": "Native desktop notifications for OpenCode sessions",
   "license": "MIT",
