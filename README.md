@@ -3,7 +3,7 @@
 Native desktop notifications for [OpenCode](https://opencode.ai) sessions.
 Start a long task, leave the terminal, and get notified when it's done.
 
-> **Status:** v0.7.0 published on npm (macOS only).
+> **Status:** published on npm (macOS only) — install with `opencode plugin add opencode-task-notifier`.
 
 ## What it does
 
@@ -146,8 +146,8 @@ per-type toggles/sound; integration tests drive `notifyMacOS` and
 
 npm stays in sync automatically: pushing a GitHub **Release** runs
 `.github/workflows/publish.yml`, which tests, typechecks, builds, and
-publishes. One-time setup: add your granular npm token as the repo
-secret `NPM_TOKEN` (Settings → Secrets → Actions). To ship a version:
+publishes via OIDC trusted publishing (no tokens — the package trusts
+this repo's `publish.yml` on npmjs). To ship a version:
 
 1. Bump `version` in `package.json`, commit, push.
 2. GitHub → Releases → Draft a new release, tag `vX.Y.Z`, publish it.
@@ -162,7 +162,7 @@ secret `NPM_TOKEN` (Settings → Secrets → Actions). To ship a version:
 - [x] **Phase 4** — user configuration (per-type toggles, sound)
 - [x] **Phase 5** — proper npm package structure
 - [x] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
-- [x] **Phase 7** — npm distribution (v0.7.0 published)
+- [x] **Phase 7** — npm distribution (auto-published via GitHub Releases)
 
 ## Backlog
 
