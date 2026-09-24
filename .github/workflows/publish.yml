@@ -20,7 +20,7 @@ jobs:
       - run: bun run build:types
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node 24 ships npm 11, required for OIDC trusted publishing.
+          node-version: 24
           registry-url: https://registry.npmjs.org/
-      - run: npm install -g npm@latest
       - run: npm publish --access public --provenance
