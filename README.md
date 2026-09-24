@@ -1,9 +1,9 @@
-# opencode-task-notifier
+# opencode-task-notifier [![npm version](https://img.shields.io/npm/v/opencode-task-notifier.svg)](https://www.npmjs.com/package/opencode-task-notifier)
 
 Native desktop notifications for [OpenCode](https://opencode.ai) sessions.
 Start a long task, leave the terminal, and get notified when it's done.
 
-> **Status:** Phase 5 package layout (macOS only). Private prototype — not published.
+> **Status:** v0.7.0 published on npm (macOS only).
 
 ## What it does
 
@@ -52,16 +52,6 @@ that isn't one of the three outcomes above.
 
 ## Install
 
-From source (current):
-
-```bash
-bun install
-bun run deploy        # build + install the plugin (server hot-reloads it)
-```
-
-From npm (once published — the name is currently unclaimed;
-publishing waits on explicit approval and is NOT done yet):
-
 ```bash
 opencode plugin add opencode-task-notifier
 ```
@@ -84,6 +74,13 @@ or via `opencode.json`:
 
 `options` merge over the config file (later wins), so npm installs can
 be configured without any files.
+
+From source (development):
+
+```bash
+bun install
+bun run deploy        # build + install the plugin (server hot-reloads it)
+```
 
 Or step by step with the built-in CLI:
 
@@ -134,7 +131,7 @@ locations are active.
 
 ```bash
 bun install
-bun test        # 32 tests (bun)
+bun test        # 47 tests (bun)
 bun run typecheck  # strict tsc --noEmit
 bun run build   # dist/index.js + dist/cli.js (bundles)
 bun run deploy  # build + install to ~/.config/opencode/plugins/
@@ -145,6 +142,17 @@ table, context resolution and fallbacks, cross-instance dedupe, and
 per-type toggles/sound; integration tests drive `notifyMacOS` and
 `runNotifier()` against a shimmed `osascript`.
 
+## Releasing
+
+npm stays in sync automatically: pushing a GitHub **Release** runs
+`.github/workflows/publish.yml`, which tests, typechecks, builds, and
+publishes. One-time setup: add your granular npm token as the repo
+secret `NPM_TOKEN` (Settings → Secrets → Actions). To ship a version:
+
+1. Bump `version` in `package.json`, commit, push.
+2. GitHub → Releases → Draft a new release, tag `vX.Y.Z`, publish it.
+3. The workflow publishes that exact version — no manual `npm publish`.
+
 ## Roadmap
 
 - [x] **Phase 1** — completion notification prototype
@@ -154,7 +162,7 @@ per-type toggles/sound; integration tests drive `notifyMacOS` and
 - [x] **Phase 4** — user configuration (per-type toggles, sound)
 - [x] **Phase 5** — proper npm package structure
 - [x] **Phase 6** — CLI (`install`, `status`, `test`, `uninstall`)
-- [ ] **Phase 7** — npm distribution
+- [x] **Phase 7** — npm distribution (v0.7.0 published)
 
 ## Backlog
 
@@ -171,7 +179,7 @@ Ideas under consideration — not commitments. Checked when built.
 **Context & delivery**
 
 - [ ] Click notification → focus the relevant terminal/VS Code window
-- [ ] Migrate config to the standard `ctx.options` mechanism at publish time
+- [x] Config via standard `options` alongside the config file (layered: defaults ← file ← options)
 - [ ] Notification history (local log of past banners)
 - [ ] Custom notification icon (today: Script Editor icon via osascript — options: `terminal-notifier` sender spoofing, or a bundled applet `.app` with own `.icns`)
 
